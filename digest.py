@@ -456,7 +456,7 @@ def publish_blogger(subject, html_body):
             timeout=60)
         post.raise_for_status()
         print(f"[INFO] Published to Blogger: {post.json().get('url', '(url unknown)')}")
-        except requests.HTTPError as exc:
+    except requests.HTTPError as exc:
         detail = exc.response.text[:300] if exc.response is not None else ""
         print(f"[WARN] Blogger publishing failed: {exc} | {detail}")
     except Exception as exc:
