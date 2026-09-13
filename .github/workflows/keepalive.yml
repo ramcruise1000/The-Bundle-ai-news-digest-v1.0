@@ -1,0 +1,22 @@
+# GitHub auto-disables scheduled workflows on repos with 60 days of no activity.
+# This monthly empty commit keeps the schedule alive. (Delete if you commit regularly anyway.)
+name: Keepalive
+
+on:
+  schedule:
+    - cron: "17 3 1 * *"   # 1st of each month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: keepalive (prevents schedule auto-disable)"
+          git push
