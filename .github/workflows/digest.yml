@@ -1,0 +1,50 @@
+name: Daily AI Digest
+
+on:
+  schedule:
+    - cron: "30 7 * * *"      # 07:30 UTC daily (GitHub may delay by up to ~1h)
+  workflow_dispatch:           # "Run workflow" button = instant testing
+    inputs:
+      hours:
+        description: "Look-back window in hours"
+        required: false
+        default: "26"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build and send digest
+        run: python digest.py
+        env:
+          SMTP_USER:              ${{ secrets.SMTP_USER }}
+          SMTP_PASS:              ${{ secrets.SMTP_PASS }}
+          EMAIL_TO:               ${{ secrets.EMAIL_TO }}
+          EMAIL_BCC:              ${{ secrets.EMAIL_BCC }}
+          GEMINI_API_KEY:         ${{ secrets.GEMINI_API_KEY }}
+          HOURS_LOOKBACK:         ${{ inputs.hours || '26' }}
+          # Blogger auto-publish (SOP Phase 9) — unset = skipped
+          BLOG_ID:                ${{ secrets.BLOG_ID }}
+          BLOGGER_CLIENT_ID:      ${{ secrets.BLOGGER_CLIENT_ID }}
+          BLOGGER_CLIENT_SECRET:  ${{ secrets.BLOGGER_CLIENT_SECRET }}
+          BLOGGER_REFRESH_TOKEN:  ${{ secrets.BLOGGER_REFRESH_TOKEN }}
