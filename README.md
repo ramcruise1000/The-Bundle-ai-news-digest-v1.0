@@ -1,5 +1,6 @@
 🤖 AI News Digest — free daily AI email + automatic Blogspot archive
 Zero-maintenance, $0 forever (no credit card, no server, no paid API):one clean email per day with the top AI stories — to you, optionally tofriends via hidden BCC, and the same digest auto-posted to your freeBlogspot blog via Blogger's built-in email posting.
+**Repo version: 1.1** — footer-free emails and blog posts.
 
 👉 Start here: SOP.md
 A click-by-click, ~20-minute setup guide for complete beginners (SOP v2.0).This README is the quick reference.
