@@ -1,6 +1,6 @@
 SOP — Free Daily AI News Email + Automatic Blogspot Archive
-SOP version	2.0 (field-tested revision)
-Repo version	1.0 (no code changes needed)
+SOP version	2.1 (field-tested revision)
+| **Repo version** | 1.1 (digest.py v1.1 — footer removed) |
 Cost	$0 — everything on free tiers. No credit card anywhere.
 Audience	Anyone with a web browser. No coding experience needed.
 Time needed	~15 minutes (core) + 5 minutes (optional blog). Zero daily effort after.
@@ -10,7 +10,9 @@ What you get when finished:
 One clean AI-news email in your inbox every morning.
 (Optional) The same email to friends — privately, via BCC.
 (Optional) The same digest auto-published every day as a post on yourfree Blogspot blog — a permanent, searchable archive.
-What changed in v2.0: blog publishing now uses Blogger's built-in"post via email" feature instead of the Google Cloud / OAuth API method.Field testing showed the email method is simpler, free, and — mostimportantly — nothing in it can expire. It needs zero extra accountsand zero API keys. (Coming from v1.0? See "Migrating from v1.0" near the end.)
+What changed in v2.0: **v2.1:** repo upgraded to digest.py v1.1 — the digest email (and the blog
+posts created from it) now ends cleanly after the last story; the
+"Sent by…" footer line was removed.blog publishing now uses Blogger's built-in"post via email" feature instead of the Google Cloud / OAuth API method.Field testing showed the email method is simpler, free, and — mostimportantly — nothing in it can expire. It needs zero extra accountsand zero API keys. (Coming from v1.0? See "Migrating from v1.0" near the end.)
 
 What you are building
 GitHub Actions (free daily scheduler)        │        ▼   digest.py  ──►  Hacker News API + 6 tech RSS feeds   (free, no keys)        │             stories de-duplicated & ranked        ├──►  ① Email → your inbox (+ friends, hidden BCC)        │        └──►  ② The same email → Blogger's secret posting address                            → auto-published on your Blogspot blog
