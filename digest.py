@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """
-AI News Digest — bundle v1.0 (email + multi-recipient + Blogspot auto-publish)
+AI News Digest — bundle v1.1 (email + multi-recipient + Blogspot via email)
 
 A zero-cost, self-hosted daily AI news service:
   • Fetches top AI stories from Hacker News (Algolia API) + curated RSS feeds
   • De-duplicates, ranks, and caps the list
   • Emails one clean digest (optionally to friends via hidden BCC)
-  • Optionally publishes the same digest to a free Blogspot blog (Blogger API v3)
+  • Blog archive: add your Blogger "post via email" address to EMAIL_BCC —
+    the daily email automatically becomes a blog post (no API, nothing expires)
   • Optionally adds an AI-written brief (Google Gemini, free tier)
+  • Optional Blogger API route kept for completeness (skips if unconfigured)
+
+v1.1 change: the "Sent by your ai-news-digest…" footer line has been removed
+from the email — and therefore also from blog posts published from that email.
 
 Runs as a scheduled GitHub Actions job. Required secrets/env:
     SMTP_USER, SMTP_PASS, EMAIL_TO
@@ -309,13 +314,9 @@ def _head(date_s, sub):
     )
 
 
-_FOOT = (
-    '<div style="margin-top:30px;padding-top:14px;border-top:1px solid #ECECEF;'
-    'color:#9a9aa8;font-size:12px;line-height:1.6;">'
-    'Sent by your <b>ai-news-digest</b> repo running on GitHub Actions (free). '
-    'To stop these emails: disable the workflow or delete the repo. '
-    'To change sources/schedule: see README.</div></div>'
-)
+# Closes the layout wrapper opened by _head(). The email ends right after
+# the last story — no footer (removed in v1.1).
+_CLOSE = "</div>"
 
 
 def render_html(items, brief):
@@ -353,7 +354,7 @@ def render_html(items, brief):
             f'<div style="font-size:12px;color:#8a8a99;">{" · ".join(meta)}{disc}</div>'
             f"{snippet_html}</div>"
         )
-    parts.append(_FOOT)
+    parts.append(_CLOSE)
     return "".join(parts)
 
 
@@ -371,7 +372,6 @@ def render_text(items, brief):
         if it["snippet"]:
             lines.append(f"   {it['snippet']}")
         lines.append("")
-    lines.append("Sent by your ai-news-digest on GitHub Actions. Disable the workflow to stop.")
     return "\n".join(lines)
 
 
@@ -380,7 +380,7 @@ def render_quiet():
     note = (f"No AI stories passed the filters in the last {HOURS_LOOKBACK} hours. "
             "Either a genuinely slow news day, or your filters are strict "
             "(see HN_MIN_POINTS and HOURS_LOOKBACK in the README).")
-    html_body = _head(date_s, "quiet day") + f'<p style="color:#333340;">{esc(note)}</p>' + _FOOT
+    html_body = _head(date_s, "quiet day") + f'<p style="color:#333340;">{esc(note)}</p>' + _CLOSE
     return html_body, f"AI NEWS DIGEST — {date_s}\n\n{note}"
 
 # ---------------------------------------------------------------------------
@@ -416,12 +416,14 @@ def send_mail(subject, html_body, text_body):
     print(f"[INFO] Email sent to {to}{extra}")
 
 # ---------------------------------------------------------------------------
-# Optional: publish the digest to your Blogspot blog (Blogger API v3)
+# Optional: publish via Blogger API (unused when the blog is fed by email)
 # ---------------------------------------------------------------------------
 
 def publish_blogger(subject, html_body):
     """Optional: also publish the digest as a Blogspot post (Blogger API v3).
-    Skips silently if not configured. Email is always sent first."""
+    Skips silently if not configured. Email is always sent first.
+    (Your blog is normally fed via Blogger's 'post via email' — that route
+    simply receives the digest email itself; this function is a fallback.)"""
     blog_id       = (os.getenv("BLOG_ID") or "").strip()
     client_id     = (os.getenv("BLOGGER_CLIENT_ID") or "").strip()
     client_secret = (os.getenv("BLOGGER_CLIENT_SECRET") or "").strip()
@@ -430,7 +432,6 @@ def publish_blogger(subject, html_body):
         print("[INFO] Blogger publishing not configured — skipping.")
         return
     try:
-        # 1. Exchange the long-lived refresh token for a short-lived access token
         tok = requests.post(
             "https://oauth2.googleapis.com/token",
             data={"client_id": client_id, "client_secret": client_secret,
@@ -439,20 +440,12 @@ def publish_blogger(subject, html_body):
         tok.raise_for_status()
         access_token = tok.json()["access_token"]
 
-        # 2. Create the post (reuse the email's HTML, swap the footer)
-        blog_footer = (
-            '<div style="margin-top:30px;padding-top:14px;border-top:1px solid #ECECEF;'
-            'color:#9a9aa8;font-size:12px;line-height:1.6;">'
-            'Daily digest auto-published by <b>ai-news-digest</b> on GitHub Actions. '
-            'Browse older issues on this blog.</div></div>'
-        )
-        content = html_body.replace(_FOOT, blog_footer)
         labels = [x.strip() for x in os.getenv("BLOG_LABELS", "AI, daily-digest").split(",") if x.strip()]
         post = requests.post(
             f"https://www.googleapis.com/blogger/v3/blogs/{blog_id}/posts/",
             headers={"Authorization": f"Bearer {access_token}"},
             params={"isDraft": os.getenv("BLOG_DRAFT", "false").lower()},
-            json={"kind": "blogger#post", "title": subject, "content": content, "labels": labels},
+            json={"kind": "blogger#post", "title": subject, "content": html_body, "labels": labels},
             timeout=60)
         post.raise_for_status()
         print(f"[INFO] Published to Blogger: {post.json().get('url', '(url unknown)')}")
