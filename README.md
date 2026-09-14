@@ -1,9 +1,10 @@
 🤖 AI News Digest — free daily AI email + automatic Blogspot archive
 Zero-maintenance, $0 forever (no credit card, no server, no paid API):one clean email per day with the top AI stories — to you, optionally tofriends via hidden BCC, and the same digest auto-posted to your freeBlogspot blog via Blogger's built-in email posting.
-**Repo version: 1.1** — footer-free emails and blog posts.
+
+Repo version: 1.1 — digest.py v1.1: emails (and blog posts) end cleanlyafter the last story; the "Sent by…" footer was removed.
 
 👉 Start here: SOP.md
-A click-by-click, ~20-minute setup guide for complete beginners (SOP v2.0).This README is the quick reference.
+A click-by-click, ~20-minute setup guide for complete beginners (SOP v2.1).This README is the quick reference.
 
 What it does (every day at 07:30 UTC)
 GitHub Actions runs digest.py (~1 minute, free)
@@ -35,6 +36,6 @@ Blog archive: powered by Blogger's built-in "post via email" — no APIkeys, no 
 Troubleshooting
 See SOP.md → Phase 10.
 
-Tested with: actions/checkout v4 · actions/setup-python v5 · Python 3.12 ·requests 2.32.3 · feedparser 6.0.11 · Gmail SMTP :587.
+Tested with: actions/checkout v4 · actions/setup-python v5 · Python 3.12 ·requests 2.32.3 · feedparser 6.0.11 · Gmail SMTP :587 · repo v1.1.
 
 MIT — do whatever you want with it.
